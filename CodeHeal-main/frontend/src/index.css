@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-card: #12121a;
+  --border-color: #1e1e2e;
+  --accent-blue: #00d4ff;
+  --accent-green: #00ff88;
+  --accent-red: #ff4455;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
+
+code, pre, textarea.code-input {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-card);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2e2e3e;
+}
+
+/* Glow effects */
+.glow-blue {
+  text-shadow: 0 0 10px var(--accent-blue), 0 0 20px var(--accent-blue);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+.glow-red {
+  box-shadow: 0 0 20px rgba(255, 68, 85, 0.3);
+}
+
+.glow-yellow {
+  box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(18, 18, 26, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+}
+
+/* Pulse animation */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Line numbers */
+.line-numbers {
+  counter-reset: line;
+}
+
+.line-numbers .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 3em;
+  padding-right: 1em;
+  margin-right: 1em;
+  text-align: right;
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border-color);
+}
+
+/* Diff highlighting */
+.diff-added {
+  background-color: rgba(0, 255, 136, 0.1);
+  border-left: 3px solid var(--accent-green);
+}
+
+.diff-removed {
+  background-color: rgba(255, 68, 85, 0.1);
+  border-left: 3px solid var(--accent-red);
+}
+
+/* Made with Bob */

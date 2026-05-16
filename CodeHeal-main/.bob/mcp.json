@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "CodeHeal_Graph_Tool": {
+      "command": "python",
+      "args": [
+        "C:\\Python\\CodeHeal_Hackathon\\bob_bridge\\local_mcp.py"
+      ]
+    }
+  }
+}
