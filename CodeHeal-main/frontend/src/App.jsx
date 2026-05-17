@@ -21,60 +21,50 @@ const MOCK_ISSUES = [
 const MOCK_SUMMARY    = { total: 12, high: 8, med: 3, low: 1 };
 const MOCK_BOTTLENECK = { function: "calculate_stats", centrality: 0.82, complexity: 9 };
 
-const MOCK_FIXED = `import requests
-import json
-import statistics
-import os
+const MOCK_FIXED = `import numpy as np
+import pandas as pd
+import pickle
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
-API_URL = os.environ.get("API_URL", "http://localhost:3000/api/users")
+MAX_FEATURE2 = 9999
 
-def get_users(api_url):
-    try:
-        response = requests.get(api_url)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
-        raise RuntimeError(f"Failed to fetch users: {e}")
+def load_data(path):
+    return pd.read_csv(path)
 
-def process_users(users):
-    result = []
-    for user in users:
-        name = user.get('name')
-        email = user.get('email')
-        age = user.get('age', 0)
-        if age > 18 and email is not None and name is not None:
-            result.append({'name': name, 'email': email, 'age': age})
-    return result
+def preprocess(d):
+    d = d.copy()
+    d = d.dropna()
+    d['label'] = d['label'].map({'benign': 0, 'pathogenic': 1})
+    d['feature1_norm'] = (d['feature1'] - d['feature1'].mean()) / d['feature1'].std()
+    d = d[d['feature2'] < MAX_FEATURE2]
+    d['ratio'] = d['feature1'] / d['feature3'].replace(0, np.nan)
+    return d
 
-def save_to_file(data, path):
-    with open(path, "w") as f:
-        json.dump(data, f)
+def train_model(d):
+    x = d.drop('label', axis=1)
+    y = d['label']
+    x_tr, x_te, y_tr, y_te = train_test_split(x, y, test_size=0.2, random_state=42)
+    m = RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=42)
+    m.fit(x_tr, y_tr)
+    return m, x_te, y_te
 
-def calculate_stats(users):
-    if not users:
-        return {'avg': 0, 'median': 0}
-    ages = [user['age'] for user in users]
-    avg = sum(ages) / len(ages)
-    med = statistics.median(ages)
-    return {'avg': round(avg, 2), 'median': med}
+def evaluate(m, x_te, y_te):
+    p = m.predict(x_te)
+    return accuracy_score(y_te, p)
 
-def find_user(users, name):
-    for user in users:
-        if user['name'] == name:
-            return user
-    raise ValueError(f"User '{name}' not found")
+def save_model(m, path):
+    with open(path, 'wb') as f:
+        pickle.dump(m, f)
 
 def main():
-    try:
-        users = get_users(API_URL)
-        processed = process_users(users)
-        save_to_file(processed, "output.json")
-        stats = calculate_stats(processed)
-        print(f"Avg age: {stats['avg']}, Median: {stats['median']}")
-        result = find_user(processed, "John")
-        print(result['email'])
-    except (RuntimeError, ValueError) as e:
-        print(f"Error: {e}")
+    d = load_data("data.csv")
+    d = preprocess(d)
+    m, x_te, y_te = train_model(d)
+    acc = evaluate(m, x_te, y_te)
+    print(f"Accuracy: {acc:.4f}")
+    save_model(m, "model.pkl")
 
 if __name__ == "__main__":
     main()`;
