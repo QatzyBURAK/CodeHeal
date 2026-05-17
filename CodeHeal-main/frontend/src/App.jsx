@@ -4,22 +4,22 @@ import { useState, useEffect } from "react";
 const API_URL = import.meta.env.VITE_API_URL || "https://codeheal-f4hx.onrender.com";
 
 const MOCK_ISSUES = [
-  { line: 24, type: "PERFORMANCE",  severity: "HIGH", description: ".iloc[] in loop — 100x slower",                  fix: "Use vectorized pandas operations"        },
-  { line: 34, type: "BUG",          severity: "HIGH", description: "feature3 column not validated — KeyError crash", fix: "Check column existence before use"        },
-  { line: 45, type: "BUG",          severity: "HIGH", description: "No random_state — non-reproducible results",     fix: "Add random_state=42"                     },
-  { line: 48, type: "PERFORMANCE",  severity: "HIGH", description: "n_estimators=1000, no parallelization",          fix: "Use n_estimators=100, n_jobs=-1"          },
-  { line: 51, type: "PERFORMANCE",  severity: "HIGH", description: "time.sleep(2) wastes 2 seconds",                 fix: "Remove entirely"                         },
-  { line: 60, type: "PERFORMANCE",  severity: "HIGH", description: "Duplicate prediction never used",                fix: "Remove line 60"                          },
-  { line: 65, type: "BUG",          severity: "HIGH", description: "Function prints instead of returning",           fix: "Change print to return acc"              },
-  { line: 71, type: "BUG",          severity: "HIGH", description: "File handle never closed",                       fix: "Use context manager with open()"         },
-  { line: 82, type: "BUG",          severity: "HIGH", description: "Hardcoded absolute path",                        fix: "Use relative path or parameter"          },
-  { line: 20, type: "BUG",          severity: "MED",  description: "No DataFrame copy — side effects",               fix: "Add df = df.copy()"                      },
-  { line: 31, type: "CODE QUALITY", severity: "MED",  description: "Magic number 9999",                              fix: "Define as named constant"                },
-  { line: 10, type: "CODE QUALITY", severity: "LOW",  description: "Function name too generic",                      fix: "Rename to load_dataset()"               },
+  { line:  7, type: "BUG",          severity: "HIGH", description: "No error handling for HTTP request — crashes on failure",   fix: "Wrap in try/except, check response.status_code" },
+  { line: 30, type: "BUG",          severity: "HIGH", description: "Hardcoded absolute path — fails on other machines",         fix: "Use the path parameter instead"                 },
+  { line: 30, type: "BUG",          severity: "HIGH", description: "File opened without context manager — never closed",        fix: "Use 'with open(...) as f:'"                     },
+  { line: 42, type: "BUG",          severity: "HIGH", description: "Division by zero if users list is empty",                   fix: "Add 'if not ages: return' guard"                },
+  { line: 44, type: "PERFORMANCE",  severity: "HIGH", description: "time.sleep(3) wastes 3 seconds",                           fix: "Remove entirely"                                },
+  { line: 49, type: "BUG",          severity: "HIGH", description: "Function prints instead of returning values",               fix: "Return {'avg': avg, 'median': med}"             },
+  { line: 55, type: "BUG",          severity: "HIGH", description: "find_user returns None implicitly — line 64 will crash",    fix: "Raise ValueError or check result before use"    },
+  { line: 58, type: "BUG",          severity: "HIGH", description: "Hardcoded localhost URL — won't work in production",        fix: "Use environment variable or config file"        },
+  { line: 39, type: "PERFORMANCE",  severity: "MED",  description: "Manual sum loop — use built-in sum()",                     fix: "total = sum(ages)"                              },
+  { line: 46, type: "CODE QUALITY", severity: "MED",  description: "Import inside function — should be at module top",         fix: "Move 'import statistics' to top of file"        },
+  { line: 20, type: "CODE QUALITY", severity: "MED",  description: "'!= None' — use 'is not None' for identity check",         fix: "if email is not None and name is not None"      },
+  { line: 13, type: "CODE QUALITY", severity: "LOW",  description: "range(len(users)) — iterate directly over list",           fix: "for user in users:"                             },
 ];
 
-const MOCK_SUMMARY    = { total: 12, high: 9, med: 2, low: 1 };
-const MOCK_BOTTLENECK = { function: "preprocess", centrality: 0.87, complexity: 14 };
+const MOCK_SUMMARY    = { total: 12, high: 8, med: 3, low: 1 };
+const MOCK_BOTTLENECK = { function: "calculate_stats", centrality: 0.82, complexity: 9 };
 
 const MOCK_FIXED = `import numpy as np
 import pandas as pd
@@ -180,7 +180,7 @@ export default function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, language: "python" }),
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(30000),
       });
       const data = await res.json();
       setIssues(data.issues?.length ? data.issues : MOCK_ISSUES);
@@ -202,7 +202,7 @@ export default function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, issues }),
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(30000),
       });
       const data = await res.json();
       setFixed(data.fixed_code || MOCK_FIXED);
