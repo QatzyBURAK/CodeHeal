@@ -253,6 +253,59 @@ export default function App() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#0f1117", color: "#e6edf3", fontFamily: "'Inter', sans-serif" }}>
+
+      {/* ── IBM BOB OVERLAY ────────────────────────────────────── */}
+      {loading && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 1000,
+          background: "rgba(10,12,18,0.85)",
+          backdropFilter: "blur(6px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          animation: "overlayIn 0.3s ease",
+        }}>
+          <div style={{
+            background: "#161b27",
+            border: "1px solid #21262d",
+            borderRadius: 16,
+            padding: "40px 48px",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 20,
+            minWidth: 320,
+            animation: "bobPulse 2s ease infinite",
+          }}>
+            <div style={{
+              width: 56, height: 56,
+              background: "rgba(59,130,246,0.12)",
+              border: "1px solid rgba(59,130,246,0.3)",
+              borderRadius: 14,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <rect x="4" y="8" width="20" height="14" rx="3" stroke="#3b82f6" strokeWidth="1.8"/>
+                <path d="M9 13h10M9 17h6" stroke="#3b82f6" strokeWidth="1.6" strokeLinecap="round"/>
+                <circle cx="20" cy="6" r="3" fill="#3b82f6"/>
+              </svg>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", marginBottom: 4 }}>
+                IBM Bob
+              </div>
+              <div style={{ fontSize: 13, color: "#8b949e" }}>
+                Analyzing your code...
+              </div>
+            </div>
+            <div style={{ width: "100%", background: "#21262d", borderRadius: 99, height: 6, overflow: "hidden" }}>
+              <div style={{
+                height: "100%", borderRadius: 99,
+                background: "linear-gradient(90deg, #3b82f6, #60a5fa)",
+                animation: "progressBar 1.2s ease forwards",
+              }} />
+            </div>
+            <div style={{ fontSize: 11, color: "#484f58", letterSpacing: "0.06em" }}>
+              POWERED BY IBM BOB · CODEHEAL
+            </div>
+          </div>
+        </div>
+      )}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
 
@@ -272,6 +325,21 @@ export default function App() {
           to   { opacity: 1; transform: translateX(0); }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes bobPulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(0.97); }
+        }
+        @keyframes progressBar {
+          0% { width: 0%; }
+          20% { width: 25%; }
+          50% { width: 60%; }
+          80% { width: 80%; }
+          100% { width: 92%; }
+        }
+        @keyframes overlayIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
 
         .fade-up { animation: fadeUp 0.4s ease both; }
         .row-in  { animation: rowIn 0.25s ease both; }
@@ -464,7 +532,7 @@ export default function App() {
             disabled={loading || fixing || !code.trim()}
           >
             {loading
-              ? <><Spinner /> Analyzing...</>
+              ? <><Spinner /> IBM Bob analyzing...</>
               : <><IconCheck /> Analyze Code</>
             }
           </button>
@@ -476,7 +544,7 @@ export default function App() {
               disabled={fixing || loading}
             >
               {fixing
-                ? <><Spinner /> Fixing...</>
+                ? <><Spinner /> IBM Bob fixing...</>
                 : <><IconFix /> Fix All Issues</>
               }
             </button>
