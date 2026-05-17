@@ -21,69 +21,65 @@ const MOCK_ISSUES = [
 const MOCK_SUMMARY    = { total: 12, high: 8, med: 3, low: 1 };
 const MOCK_BOTTLENECK = { function: "calculate_stats", centrality: 0.82, complexity: 9 };
 
-const MOCK_FIXED = `import numpy as np
-import pandas as pd
-import pickle  # FIXED: moved to top level
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+const MOCK_FIXED = `import requests
+import json
+import statistics
+import os
 
-MAX_FEATURE2 = 9999  # FIXED: named constant
+API_URL = os.environ.get("API_URL", "http://localhost:3000/api/users")
 
-def load_dataset(path):  # FIXED: descriptive name
-    return pd.read_csv(path)
+def get_users(api_url):
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        raise RuntimeError(f"Failed to fetch users: {e}")
 
-def preprocess(data):
-    data = data.copy()  # FIXED: avoid side effects
-    data = data.dropna()
-    if 'label' not in data.columns:
-        raise ValueError("Dataset must contain 'label' column")
-    data['label'] = data['label'].map({'benign': 0, 'pathogenic': 1})
-    # FIXED: vectorized — was .iloc loop, 100x faster
-    data['feature1_norm'] = (data['feature1'] - data['feature1'].mean()) / data['feature1'].std()
-    data = data[data['feature2'] < MAX_FEATURE2]
-    if 'feature3' not in data.columns:  # FIXED: validate column
-        raise ValueError("Dataset must contain 'feature3' column")
-    data['ratio'] = data['feature1'] / data['feature3'].replace(0, np.nan)
-    return data
+def process_users(users):
+    result = []
+    for user in users:
+        name = user.get('name')
+        email = user.get('email')
+        age = user.get('age', 0)
+        if age > 18 and email is not None and name is not None:
+            result.append({'name': name, 'email': email, 'age': age})
+    return result
 
-def train_model(data):
-    X = data.drop('label', axis=1)
-    y = data['label']
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42  # FIXED: reproducible
-    )
-    model = RandomForestClassifier(
-        n_estimators=100, n_jobs=-1, random_state=42  # FIXED: optimized
-    )
-    # FIXED: removed time.sleep(2)
-    model.fit(X_train, y_train)
-    return model, X_test, y_test
+def save_to_file(data, path):
+    with open(path, "w") as f:
+        json.dump(data, f)
 
-def evaluate_model(model, X_test, y_test):
-    predictions = model.predict(X_test)  # FIXED: removed duplicate preds2
-    return accuracy_score(y_test, predictions)  # FIXED: return not print
+def calculate_stats(users):
+    if not users:
+        return {'avg': 0, 'median': 0}
+    ages = [user['age'] for user in users]
+    avg = sum(ages) / len(ages)
+    med = statistics.median(ages)
+    return {'avg': round(avg, 2), 'median': med}
 
-def save_model(model, path):
-    with open(path, 'wb') as f:  # FIXED: context manager
-        pickle.dump(model, f)
+def find_user(users, name):
+    for user in users:
+        if user['name'] == name:
+            return user
+    raise ValueError(f"User '{name}' not found")
 
 def main():
     try:
-        data = load_dataset("data.csv")  # FIXED: relative path
-        data = preprocess(data)
-        model, X_test, y_test = train_model(data)
-        accuracy = evaluate_model(model, X_test, y_test)  # FIXED: capture return
-        print(f"Model accuracy: {accuracy:.4f}")
-        save_model(model, "model.pkl")
-        print("Model saved successfully.")
-    except FileNotFoundError as e:
+        users = get_users(API_URL)
+        processed = process_users(users)
+        save_to_file(processed, "output.json")
+        stats = calculate_stats(processed)
+        print(f"Avg age: {stats['avg']}, Median: {stats['median']}")
+        result = find_user(processed, "John")
+        print(result['email'])
+    except (RuntimeError, ValueError) as e:
         print(f"Error: {e}")
-    except ValueError as e:
-        print(f"Data error: {e}")
 
 if __name__ == "__main__":
     main()`;
+
+// MOCK_FIXED updated for users API code
 
 const SEV = {
   HIGH:   { color: "#ef4444", bg: "rgba(239,68,68,0.1)",  border: "rgba(239,68,68,0.22)"  },
